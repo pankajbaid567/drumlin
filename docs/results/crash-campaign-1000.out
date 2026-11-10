@@ -1,0 +1,11 @@
+100 runs ok, 103834 operations so far
+200 runs ok, 186880 operations so far
+300 runs ok, 254848 operations so far
+400 runs ok, 319217 operations so far
+500 runs ok, 385774 operations so far
+600 runs ok, 445211 operations so far
+700 runs ok, 513221 operations so far
+800 runs ok, 585607 operations so far
+900 runs ok, 652944 operations so far
+1000 runs ok, 707103 operations so far
+PASS: 1000 kills, 706905 acknowledged operations checked, 198 runs where the in-flight operation had also been logged, 23 kills before the first write, 390 seconds

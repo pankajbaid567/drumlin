@@ -1,24 +1,37 @@
 # Drumlin
 
-**LSM-tree key-value store, then Raft replication.** Working name; checked on GitHub 2026-11-10 (84 repos with this name, none in storage). Status: **planned**.
+**An LSM-tree key-value store in Go, with its crash behaviour tested instead of assumed.** Skiplist memtable, CRC-framed write-ahead log, SSTables with Bloom filters and a block index, leveled compaction, snapshot reads, checksummed files, recovery. Standard library only.
 
-A drumlin is a hill built up from layers of sediment, which is what an LSM tree's levels are.
+Phase A (this repository, working) is the single-node store. Phase B, Raft replication with a linearizability checker, is **not started**; nothing here claims it.
 
-## Why (JD coverage)
-Rubrik, Nutanix, Cloudflare, Confluent, Atlassian infrastructure teams, storage and database teams. The research found that only 14% of selected candidates show anything distributed-systems shaped, and replication and consensus is the biggest gap left in this portfolio (Pitbook is single node, cache-cluster has no replication).
+## What was measured
+Details, method and limits: [docs/results.md](docs/results.md). One busy M3 laptop.
+- **1,000 SIGKILLs** of a real writer process at random moments, mid-flush and mid-compaction: **0 lost acknowledged writes, 0 invented ones** across 706,905 checked operations. (Process kills only; the log is handed to the OS on every write, no fsync.)
+- **7 of 7 injected bugs caught**; one only by the crash harness.
+- A **real bug found by the differential test** in the first implementation (a compaction orphaned an unflushed memtable's log): fixed and written up.
+- A differential test against a plain map (300,000 operations with snapshots, restarts and simulated crashes) and a test that cuts the log at **every byte offset**.
+- About 230,000 writes/s and 290,000 reads/s with cache-resident data and no fsync; **write amplification 4.2 (sequential) and 6.6 (random)**; with fsync on every write, about 340 writes/s (no group commit yet).
 
-## Scope (v1, to be confirmed in the plan)
-Phase A: single node. Memtable, write-ahead log, SSTables with block index and bloom filters, leveled compaction, snapshot reads, crash recovery, db_bench-style benchmarks and write amplification numbers.
-Phase B: replication. Raft (leader election, log replication, snapshots, membership change kept minimal) on top of the same log, linearizable reads, a Jepsen-style fault harness (partitions, kills, clock skew) that checks linearizability.
+## Use it
+```go
+d, _ := db.Open("data", db.Options{Sync: false})
+d.Put([]byte("k"), []byte("v"))
+v, ok, _ := d.Get([]byte("k"))
+snap := d.NewSnapshot()               // consistent view; compaction keeps what it needs
+kvs, _ := d.Scan([]byte("a"), []byte("z"), 100)
+snap.Release(); d.Close()
+```
 
-## Non-goals
-Transactions, SQL, multi-region, production claims.
+## Reproduce
+```bash
+go test -race ./...                                    # 10 tests, about a minute
+go build -o bin/crashtest ./cmd/crashtest && ./bin/crashtest -runs 1000   # about 7 minutes
+python3 scripts/mutation_check.py                      # 7 mutants
+go build -o bin/bench ./cmd/bench && ./bin/bench -n 1000000
+```
 
-## Proof targets (set up front, not results)
-Crash-recovery harness with 0 lost acknowledged writes over at least 1,000 kills; linearizability checker passing under partitions; throughput and write amplification reported with method.
+## Layout
+`db/` (store), `cmd/crashtest`, `cmd/bench`, `scripts/mutation_check.py`, [docs/](docs/): [architecture](docs/architecture.md), [design decisions](docs/DESIGN.md), [testing](docs/testing.md), [results](docs/results.md), [resume claims](docs/resume-claims.md), [PRD](docs/prd.md).
 
-## Reuses
-Pitbook (WAL framing, group commit, crash harness, fuzzing and torn-tail tests, benchmark method) and cache-cluster (Go project layout).
-
-## Risks
-Raft is easy to get subtly wrong; the fault harness is the real deliverable. Phase A must stand on its own on the resume if Phase B slips.
+## What this is not
+Not production software and not a RocksDB replacement. No transactions or batches, compression, block cache, group commit, multi-process access or replication. Durability against power loss is a configuration (`Options.Sync`) that is **not covered by the crash tests**. Writers are serialised, and a long compaction can stall them (visible as the 15 ms max write latency).

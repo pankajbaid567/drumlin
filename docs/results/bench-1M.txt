@@ -1,0 +1,5 @@
+fillseq                   264968 ops/s  p50 2.25µs    p99 9.417µs   p99.9 62.042µs  max 15.139625ms  write-amp 4.20 (user 115 MB, disk 483 MB, 40 compactions)
+fillrandom                233099 ops/s  p50 2.542µs   p99 9.459µs   p99.9 73.833µs  max 15.386334ms  write-amp 6.57 (user 115 MB, disk 755 MB, 35 compactions)
+readrandom                289588 ops/s  p50 2.542µs   p99 18.417µs  p99.9 77.375µs  max 21.503333ms  (misses: 0)
+scan100                    10990 scans/s of 100 keys (20000 keys returned)
+levels after fillrandom (files per level): [3 4 25 0 0 0 0]

@@ -1,0 +1,5 @@
+bin/
+.mutants/
+*.test
+.DS_Store
+docs/results/*.log

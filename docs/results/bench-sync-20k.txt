@@ -1,0 +1,3 @@
+fillseq                      337 ops/s  p50 2.952417ms p99 10.426959ms p99.9 44.205584ms max 237.411083ms  write-amp 1.16 (user 2 MB, disk 3 MB, 0 compactions)
+fillrandom                   242 ops/s  p50 3.9955ms  p99 13.208833ms p99.9 44.491125ms max 297.13475ms  write-amp 1.16 (user 2 MB, disk 3 MB, 0 compactions)
+levels after fillrandom (files per level): [1 0 0 0 0 0 0]

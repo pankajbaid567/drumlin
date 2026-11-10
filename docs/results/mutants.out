@@ -1,0 +1,9 @@
+mutant 1: manifest forgets the unflushed frozen memtable's log: CAUGHT (34s) tests failed: TestDifferentialAgainstAMap
+mutant 2: compaction drops versions needed by snapshots: CAUGHT (38s) tests failed: TestSnapshotSeesTheOldWorldAcrossCompaction, TestDifferentialAgainstAMap
+mutant 3: tombstones dropped above older data: CAUGHT (36s) tests failed: TestDifferentialAgainstAMap
+mutant 4: log not handed to the OS on each write: CAUGHT (20s) tests failed: TestUnflushedWritesSurviveACrash, TestTornWALAtEveryByteRecoversAPrefix, TestDifferentialAgainstAMap
+mutant 5: old log deleted before the manifest records the new table: CAUGHT (4s) crash harness: VIOLATION run 7 (last acknowledged op 7293, killed after 159ms): get disagrees for k02345; missing k00030; missing k00087; missing k00144; missing k00
+mutant 6: Bloom filter with false negatives: CAUGHT (37s) tests failed: TestReopenKeepsEverything, TestBloomFalsePositiveRate, TestDifferentialAgainstAMap
+mutant 7: level 0 searched oldest first: CAUGHT (28s) tests failed: TestDifferentialAgainstAMap
+
+7/7 mutants caught
